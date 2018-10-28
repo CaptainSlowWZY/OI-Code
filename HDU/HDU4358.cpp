@@ -64,7 +64,7 @@ namespace BIT {
 		for (; p > 0; p &= p - 1) ret += T[p];
 		return ret;
 	}
-	inline int sum(int l, int r) { return query(r) - query(l - 1); }
+	inline void add(int l, int r, int d) { add(l, d), add(r + 1, -d); }
 }
 
 void dfs(int u, int fa) {
@@ -112,21 +112,21 @@ void solve() {
 
 	std::sort(num, num + totn);
 	totn = std::unique(num, num + totn) - num;
-	for (int i = 0; i < totn; i++) pos[i].clear();
+	for (int i = 0; i < totn; i++) pos[i].clear(), pos[i].pb(0);
 	std::sort(qry, qry + Q);
 #ifdef DEBUG_MD
 	for (int i = 0; i < Q; i++) debug("  id: %d, [%d, %d]\n", qry[i].id, qry[i].l, qry[i].r);
 #endif
 	BIT::init();
 	for (int i = 1, iq = 0; i <= N && iq < Q; i++) {
-		int now = get_id(W[i]);
-		pos[now].pb(i);
-		if (pos[now].size() == K) BIT::add(pos[now][0], 1);
-		if (pos[now].size() > K) {
-			BIT::add(pos[now][pos[now].size() - K - 1], -2);
-			BIT::add(pos[now][pos[now].size() - K], 1);
+		std::vector<int> & now = pos[get_id(W[i])];
+		now.pb(i);
+		int cnt = now.size() - 1;
+		if (cnt >= K) {
+			BIT::add(now[cnt - K] + 1, now[cnt - K + 1], 1);
+			if (cnt > K) BIT::add(now[cnt - K - 1] + 1, now[cnt - K], -1);
 		}
-		for (; iq < Q && qry[iq].r == i; ++iq) ans[qry[iq].id] = BIT::sum(qry[iq].l, qry[iq].r);
+		for (; iq < Q && qry[iq].r == i; ++iq) ans[qry[iq].id] = BIT::query(qry[iq].l);
 	}
 	
 	static int ks = 0;
