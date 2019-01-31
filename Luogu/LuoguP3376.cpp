@@ -14,13 +14,13 @@ struct Edge {
 	int to, capt, next;
 } E[MAXM << 1];
 
-int N, M, S, T, tote = 1, last[MAXN], D[MAXN];
+int N, M, S, T, tote = 1, last[MAXN], D[MAXN], cur[MAXN];
 
 inline void add_edge(int u, int v, int c) {
 	E[++tote] = (Edge){v, c, last[u]}, last[u] = tote;
 	E[++tote] = (Edge){u, 0, last[v]}, last[v] = tote;
 }
-int dinic();
+int max_flow();
 
 int main() {
 	scanf("%d%d%d%d", &N, &M, &S, &T);
@@ -29,7 +29,7 @@ int main() {
 		add_edge(ui, vi, ci);
 	}
 
-	printf("%d\n", dinic());
+	printf("%d\n", max_flow());
 
 	return 0;
 }
@@ -48,20 +48,25 @@ bool build() {
 	return D[T];
 }
 
-int dfs(int u, int cap) {
+int dinic(int u, int cap) {
 	if (u == T) return cap;
 	int rem = cap;
-	forto(u)
+	for (int & e = cur[u]; e; e = E[e].next) {
+		int v = E[e].to;
 		if (D[v] == D[u] + 1 && E[e].capt > 0) {
-			int delta = dfs(v, std::min(rem, E[e].capt));
+			int delta = dinic(v, std::min(rem, E[e].capt));
 			E[e].capt -= delta, E[e ^ 1].capt += delta;
 			if (!(rem -= delta)) break;
 		}
+	}
 	return cap - rem;
 }
 
-int dinic() {
-	int ret = 0;
-	while (build()) ret += dfs(S, INF);
+int max_flow() {
+	int tmp, ret = 0;
+	while (build()) {
+		for (int i = 1; i <= N; i++) cur[i] = last[i];
+		while (tmp = dinic(S, INF)) ret += tmp;
+	}
 	return ret;
 }
