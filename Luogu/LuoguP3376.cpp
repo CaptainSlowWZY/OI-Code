@@ -66,7 +66,7 @@ int max_flow() {
 	int tmp, ret = 0;
 	while (build()) {
 		for (int i = 1; i <= N; i++) cur[i] = last[i];
-		while (tmp = dinic(S, INF)) ret += tmp;
+		ret += dinic(S, INF);
 	}
 	return ret;
 }
