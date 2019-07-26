@@ -1,38 +1,45 @@
-// SPOJ 1812 LCS II
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <algorithm>
 
-const int LEN = 1e5 + 10;
+const int kMaxn = 2e5 + 10;
 
-int lens;
-char S[LEN];
+char S[kMaxn];
 
-namespace SAM {
-	void extend(int ch);
-	void prep();
-	void match(const char *str);
-	int query();
+namespace sam {
+	void Extend(int);
+	void Init();
+	void Match(char *);
+	int Ans();
+}
+template <typename T> inline
+void UMax(T & x, const T & y) {
+	if (x < y) x = y;
+}
+template <typename T> inline
+void UMin(T & x, const T & y) {
+	if (x > y) x = y;
 }
 
 int main() {
 	scanf("%s", S);
-	lens = strlen(S);
-	for (int i = 0; S[i]; i++) SAM::extend(S[i] - 'a');
-	SAM::prep();
-	for (; scanf("%s", S) != EOF; ) SAM::match(S);
-	printf("%d\n", SAM::query());
+	for (int i = 0; S[i]; i++) sam::Extend(S[i] - 'a');
+
+	sam::Init();
+	while (~scanf("%s", S)) sam::Match(S);
+
+	printf("%d\n", sam::Ans());
 	return 0;
 }
 
-namespace SAM {
-	typedef int IntAr[LEN << 1];
-	int size = 1, last = 1, A[LEN << 1][26];
-	IntAr max, par, val, ans, id;
+namespace sam {
+	int size = 1, last = 1;
+	int max[kMaxn], A[kMaxn][26], par[kMaxn];
+	int id[kMaxn], val[kMaxn], ans[kMaxn];;
 
-	void extend(int ch) {
-		int p = last, np = ++size;
-		max[np] = max[p] + 1, last = np;
+	void Extend(int ch) {
+		int np = ++size, p = last;
+		max[last = np] = max[p] + 1;
 		for (; p && !A[p][ch]; p = par[p]) A[p][ch] = np;
 		if (!p) return (void)(par[np] = 1);
 		int q = A[p][ch];
@@ -40,38 +47,42 @@ namespace SAM {
 		else {
 			int nq = ++size;
 			max[nq] = max[p] + 1;
-			par[nq] = par[q], par[np] = par[q] = nq;
-			memcpy(A[nq], A[q], sizeof(A[q]));
+			memcpy(A[nq], A[q], sizeof A[q]);
+			par[nq] = par[q], par[q] = par[np] = nq;
 			for (; A[p][ch] == q; p = par[p]) A[p][ch] = nq;
 		}
 	}
-	void prep() {
+	void Init() {
 		for (int i = 1; i <= size; i++) ++val[ans[i] = max[i]];
-		for (int i = 1; i <= lens; i++) val[i] += val[i - 1];
-		for (int i = 1; i <= size; i++) id[val[max[i]]--] = i; 
-//		memset(val, 0, sizeof val);
+		for (int i = 1; i <= size; i++) val[i] += val[i - 1];
+		for (int i = 1; i <= size; i++) id[val[max[i]]--] = i;
+		memset(val, 0, sizeof val);
 	}
-	void match(const char *str) {
-		int cur = 1, len = 0;
-		for (int i = 0, ch; str[i]; i++) {
-			if (A[cur][ch = str[i] - 'a']) ++len, cur = A[cur][ch];
-			else {
-				for (; cur && !A[cur][ch]; cur = par[cur]);
-				if (!cur) cur = 1, len = 0;
-				else len = max[cur] + 1, cur = A[cur][ch];
+	void Match(char str[]) {
+		int len = 0, cur = 1;
+		for (int i = 0; str[i]; i++) {
+			if (A[cur][str[i] -= 'a']) {
+				cur = A[cur][str[i]], ++len;
+			} else {
+				for (; cur && !A[cur][str[i]]; cur = par[cur]);
+				if (!cur) {
+					cur = 1, len = 0;
+				} else {
+					len = max[cur] + 1, cur = A[cur][str[i]];
+				}
 			}
-			val[cur] = std::max(val[cur], len);
+			UMax(val[cur], len);
 		}
-		for (int i = size; i > 0; i--) {
-			cur = id[i];
-			val[par[cur]] = std::max(val[par[cur]], val[cur]);
-			ans[cur] = std::min(ans[cur], val[cur]);
-			val[cur] = 0;
+		for (int i = size, u; i; i--) {
+			u = id[i];
+			UMax(val[par[u]], val[u]);
+			UMin(ans[u], val[u]);
+			val[u] = 0;
 		}
 	}
-	int query() {
-		int ret = 0;
-		for (int i = 1; i <= size; i++) ret = std::max(ret, ans[i]);
-		return ret;
+	int Ans() {
+		int res = 0;
+		for (int i = 1; i <= size; i++) UMax(res, ans[i]);
+		return res;
 	}
 }
