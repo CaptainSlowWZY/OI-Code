@@ -1,38 +1,41 @@
+#include <algorithm>
 #include <cstdio>
-#include <vector>
 
-const int kMaxn = 3e5 + 5;
+typedef long long LL;
 
-int n;
-std::vector<int> pos[kMaxn];
+LL ans, n;
 
-namespace bit {
-	int T[kMaxn];
-	int Sum(int p) { int r = 0; for (; p; p &= p - 1) r += T[p]; return r; }
-	inline int Sum(int l, int r) { return Sum(r) - Sum(l - 1); }
-	void Add(int p) { for (; p <= n; p += p & -p) ++T[p]; }
-}
+bool Check(LL m);
 
 int main() {
-	scanf("%d", &n);
-	for (int i = 1, ai; i <= n; ++i) {
-		scanf("%d", &ai); pos[ai].push_back(i);
-	}
-	long long ans = 0;
-	for (int i = 1; i <= n; ++i) {
-		if (pos[i].empty()) continue;
-		std::vector<int> & cur = pos[i];
-		int hd = 0, tl = (int)cur.size() - 1;
-		for (int lc, rc; hd <= tl; ) {
-			lc = cur[hd] - 1 - bit::Sum(1, cur[hd] - 1);	
-			rc = n - cur[tl] - bit::Sum(cur[tl] + 1, n);
-			if (lc < rc) {
-				ans += lc; bit::Add(cur[hd++]);
-			} else {
-				ans += rc; bit::Add(cur[tl--]);
-			}
-		}
-	} printf("%lld\n", ans);
-	return 0;
+	int t; scanf("%d", &t);
+	for (LL lb, ub; t--; ) {
+		scanf("%lld", &n);
+		lb = 0, ub = 1e18, ans = 0;
+		for (LL mid; ub - lb > 1; ) {
+			mid = lb + ub >> 1;	
+			if (Check(mid)) lb = mid;
+			else ub = mid;
+		} printf("%lld\n", ans);
+	} return 0;
 }
 
+inline LL Sum(LL x) { return x * (x + 1) >> 1; }
+
+bool Check(LL m) {
+	LL s = 0, b = 0;
+	for (int i = 0; i < 60; ++i) {
+		LL p = 1ll << i;	
+		s += p * Sum((m - 1) / p);
+		b += (m - 1) / p;
+		if (s > n) return false;
+	}	
+	for (int i = 0; i < 60; ++i) {
+		LL p = 1ll << i;
+		if (m % p) continue;
+		if (s + m <= n) {
+			s += m; ++b;
+		}
+	} ans = std::max(ans, b);
+	return true;
+}
