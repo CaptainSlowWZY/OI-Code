@@ -42,8 +42,6 @@ void Dfs2(int u, int fa) {
 		F[son[u]] = F[u] + 1, G[son[u]] = G[u];
 		H[son[u]] = H[u] - 1; Dfs2(son[u], u);
 	} F[u][0] = 1;
-	using namespace std;
-	int *mxf = F[u], *mxh =H[u], *mxg = G[u];
 	for (auto v : E[u]) if (v != fa && v != son[u]) {
 		Ass(v); Dfs2(v, u);
 		for (int i = 1; i <= len[v] + 1; ++i) {
@@ -55,9 +53,6 @@ void Dfs2(int u, int fa) {
 			Upa(H[u][i], Mul(F[u][i], G[v][i]));
 			Upa(G[u][i], Add(G[v][i], Mul(F[u][i], F[v][i - 1])));
 			Upa(F[u][i], F[v][i - 1]);
-			if (F[u] + i > mxf) mxf = F[u] + i;
-			if (G[u] + i > mxg) mxg = G[u] + i;
-			if (H[u] + i > mxh) mxh = H[u] + i;
 		} Upa(H[u][0], H[v][1]);
 	} Upa(ans, H[u][0]);
 }
